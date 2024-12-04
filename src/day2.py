@@ -21,6 +21,20 @@ def is_safe_report(levels):
             
     return True
 
+def is_safe_with_dampener(levels):
+    # First check if it's safe without removing any level
+    if is_safe_report(levels):
+        return True
+        
+    # Try removing each level one at a time
+    for i in range(len(levels)):
+        # Create new list without the current level
+        dampened_levels = levels[:i] + levels[i+1:]
+        if is_safe_report(dampened_levels):
+            return True
+            
+    return False
+
 def solve_part1():
     safe_count = 0
     
@@ -33,6 +47,21 @@ def solve_part1():
                 
     return safe_count
 
+def solve_part2():
+    safe_count = 0
+    
+    with open('day2_input.txt', 'r') as f:
+        for line in f:
+            # Convert line of numbers to list of integers
+            levels = [int(x) for x in line.strip().split()]
+            if is_safe_with_dampener(levels):
+                safe_count += 1
+                
+    return safe_count
+
 if __name__ == "__main__":
-    result = solve_part1()
-    print(f"Number of safe reports: {result}") 
+    result1 = solve_part1()
+    print(f"Part 1 - Number of safe reports: {result1}")
+    
+    result2 = solve_part2()
+    print(f"Part 2 - Number of safe reports with dampener: {result2}") 

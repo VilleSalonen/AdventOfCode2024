@@ -19,8 +19,8 @@ def parse_multiplications(text, handle_conditions=False):
     
     # Find all instructions in order of appearance
     mul_pattern = r'\bmul\(\d{1,3},\d{1,3}\)'
-    do_pattern = r'\bdo\(\)'
-    dont_pattern = r'\bdon\'t\(\)'
+    do_pattern = r'do\(\)'  # Removed \b to match 'undo()' as well
+    dont_pattern = r'don\'t\(\)'
     
     # Get all matches with their positions
     all_matches = []
@@ -36,7 +36,11 @@ def parse_multiplications(text, handle_conditions=False):
     all_matches.sort(key=lambda x: x[1])
     
     # Process instructions in order
-    for type, _, instruction in all_matches:
+    for type, pos, instruction in all_matches:
+        # Check if this is part of 'undo()'
+        if type == 'do' and pos >= 2 and text[pos-2:pos] == 'un':
+            continue
+            
         if type == 'do':
             enabled = True
         elif type == 'dont':

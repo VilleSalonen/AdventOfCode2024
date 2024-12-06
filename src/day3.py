@@ -17,13 +17,11 @@ def parse_instruction(text, pos):
         return None
         
     if text[pos:pos+3] == 'mul':
-        # Find the opening parenthesis
-        p_start = pos + 3
-        while p_start < len(text) and text[p_start].isspace():
-            p_start += 1
-        if p_start >= len(text) or text[p_start] != '(':
+        # Must be exactly 'mul' followed by '('
+        if pos + 3 < len(text) and text[pos+3] != '(':
             return None
             
+        p_start = pos + 3
         # Find closing parenthesis
         p_end = find_closing_parenthesis(text, p_start + 1)
         if p_end == -1:
@@ -32,7 +30,11 @@ def parse_instruction(text, pos):
         # Parse the numbers
         try:
             content = text[p_start+1:p_end]
-            x, y = map(str.strip, content.split(','))
+            if ',' not in content:
+                return None
+            x, y = map(str.strip, content.split(',', 1))
+            if not x.isdigit() or not y.isdigit():
+                return None
             x, y = int(x), int(y)
             if 0 <= x <= 999 and 0 <= y <= 999:  # Validate number range
                 return ('mul', p_end, (x, y))
@@ -62,7 +64,7 @@ def parse_multiplications(text, handle_conditions=False):
             if instruction and instruction[0] == 'mul':
                 x, y = instruction[2]
                 total += x * y
-                pos = instruction[1]  # Skip to end of instruction
+                pos = instruction[1] + 1  # Move past the closing parenthesis
             else:
                 pos += 1
         return total
@@ -78,15 +80,14 @@ def parse_multiplications(text, handle_conditions=False):
             type, end_pos, numbers = instruction
             if type == 'do':
                 enabled = True
-                pos = end_pos
             elif type == 'dont':
                 enabled = False
-                pos = end_pos
             elif type == 'mul' and enabled:
                 x, y = numbers
                 total += x * y
-                pos = end_pos
-        pos += 1
+            pos = end_pos + 1  # Move past the closing parenthesis
+        else:
+            pos += 1
         
     return total
 

@@ -12,15 +12,16 @@ def find_closing_parenthesis(text, start):
 
 def parse_instruction(text, pos):
     """Parse an instruction starting at pos, return (type, end_pos, numbers)"""
-    if text[pos:pos+3] == 'mul':
-        if pos > 0 and text[pos-1].isalpha():  # Skip if part of another word
-            return None
+    # Check if it's part of another word
+    if pos > 0 and text[pos-1].isalnum():
+        return None
         
+    if text[pos:pos+3] == 'mul':
         # Find the opening parenthesis
         p_start = pos + 3
-        while p_start < len(text) and text[p_start] != '(':
+        while p_start < len(text) and text[p_start].isspace():
             p_start += 1
-        if p_start >= len(text):
+        if p_start >= len(text) or text[p_start] != '(':
             return None
             
         # Find closing parenthesis
@@ -31,7 +32,8 @@ def parse_instruction(text, pos):
         # Parse the numbers
         try:
             content = text[p_start+1:p_end]
-            x, y = map(int, content.split(','))
+            x, y = map(str.strip, content.split(','))
+            x, y = int(x), int(y)
             if 0 <= x <= 999 and 0 <= y <= 999:  # Validate number range
                 return ('mul', p_end, (x, y))
         except:
@@ -39,15 +41,11 @@ def parse_instruction(text, pos):
         return None
         
     elif text[pos:pos+2] == 'do':
-        if pos > 0 and text[pos-1].isalpha():  # Skip if part of another word
-            return None
-        if text[pos:pos+5] == 'do()':
-            return ('do', pos+4, None)
+        if text[pos:pos+4] == 'do()':
+            return ('do', pos+3, None)
         return None
         
     elif text[pos:pos+5] == "don't":
-        if pos > 0 and text[pos-1].isalpha():  # Skip if part of another word
-            return None
         if text[pos:pos+7] == "don't()":
             return ('dont', pos+6, None)
         return None
@@ -64,7 +62,9 @@ def parse_multiplications(text, handle_conditions=False):
             if instruction and instruction[0] == 'mul':
                 x, y = instruction[2]
                 total += x * y
-            pos += 1
+                pos = instruction[1]  # Skip to end of instruction
+            else:
+                pos += 1
         return total
     
     # Part 2: Handle do() and don't() conditions
@@ -78,12 +78,14 @@ def parse_multiplications(text, handle_conditions=False):
             type, end_pos, numbers = instruction
             if type == 'do':
                 enabled = True
+                pos = end_pos
             elif type == 'dont':
                 enabled = False
+                pos = end_pos
             elif type == 'mul' and enabled:
                 x, y = numbers
                 total += x * y
-            pos = end_pos
+                pos = end_pos
         pos += 1
         
     return total

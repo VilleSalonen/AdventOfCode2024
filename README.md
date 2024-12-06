@@ -7,4 +7,4 @@ All solutions provided by Cursor AI.
 Results so far:
 - Day 1: 100%
 - Day 2: 100%
-- Day 3: No success yet even after multiple attempts and forcing LLM to write tests.
+- Day 3: Success finally after switching to Cursor's agent composer. After switching, the correct solutions for both parts were found on the first try.
